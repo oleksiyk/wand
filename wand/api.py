@@ -424,6 +424,41 @@ try:
     library.MagickSigmoidalContrastImage.argtypes = [ctypes.c_void_p, ctypes.c_bool,
                                           ctypes.c_double, ctypes.c_double]
 
+    library.MagickVignetteImage.argtypes = [ctypes.c_void_p,  # Wand
+                                            ctypes.c_double,  # Radius
+                                            ctypes.c_double,  # Sigma
+                                            ctypes.c_long,    # x
+                                            ctypes.c_long]    # y
+
+    library.MagickSepiaToneImage.argtypes = [ctypes.c_void_p,  # Wand
+                                            ctypes.c_double]  # threshold
+
+    library.MagickColorizeImage.argtypes = [ctypes.c_void_p,   # Wand
+                                            ctypes.c_void_p,   # colorize
+                                            ctypes.c_void_p]   # blend
+
+    library.MagickGetImageArtifact.argtypes = [ctypes.c_void_p,
+                                               ctypes.c_char_p] # name
+    library.MagickGetImageArtifact.restype = ctypes.c_char_p
+
+    library.MagickSetImageArtifact.argtypes = [ctypes.c_void_p,
+                                               ctypes.c_char_p, # name
+                                               ctypes.c_char_p] # value
+
+    library.GetImageFromMagickWand.argtypes = [ctypes.c_void_p]
+    library.GetImageFromMagickWand.restype = ctypes.c_void_p
+    libmagick.SetImageMask.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+
+    library.MagickExtentImage.argtypes = [ctypes.c_void_p,
+                                          ctypes.c_size_t,
+                                          ctypes.c_size_t,
+                                          ctypes.c_size_t,
+                                          ctypes.c_size_t]
+
+    library.MagickTextureImage.argtypes = [ctypes.c_void_p,
+                                           ctypes.c_void_p]
+    library.MagickTextureImage.restype = ctypes.c_void_p
+
     library.MagickResizeImage.argtypes = [ctypes.c_void_p, ctypes.c_size_t,
                                           ctypes.c_size_t, ctypes.c_int,
                                           ctypes.c_double]
@@ -630,6 +665,10 @@ try:
     library.MagickGaussianBlurImage.argtypes = [ctypes.c_void_p,
                                                 ctypes.c_double,
                                                 ctypes.c_double]
+
+    library.MagickBlurImage.argtypes = [ctypes.c_void_p,
+                                        ctypes.c_double,
+                                        ctypes.c_double]
 
     library.MagickUnsharpMaskImage.argtypes = [ctypes.c_void_p,
                                                ctypes.c_double,

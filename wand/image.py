@@ -1348,7 +1348,7 @@ class BaseImage(Resource):
         return HistogramDict(self)
 
     @manipulative
-    def distort(self, method, arguments, best_fit=False):
+    def distort(self, method, arguments, best_fit=False, options={}):
         """Distorts an image using various distorting methods.
 
         :param method: Distortion method name from :const:`DISTORTION_METHODS`
@@ -1368,6 +1368,8 @@ class BaseImage(Resource):
         if not isinstance(arguments, collections.Sequence):
             raise TypeError('expected sequence of doubles, not ' +
                             repr(arguments))
+        for name in options:
+          library.MagickSetImageArtifact(self.wand, name, options[name])
         argc = len(arguments)
         argv = (ctypes.c_double * argc)(*arguments)
         library.MagickDistortImage(self.wand,
@@ -1671,6 +1673,58 @@ class BaseImage(Resource):
 
         beta = float(self.quantum_range * midpoint)
         library.MagickSigmoidalContrastImage(self.wand, increase, strength, beta)
+
+    def vignette(self, radius, sigma, x, y):
+        library.MagickVignetteImage(self.wand, radius, sigma, x, y)
+
+    def sepia_tone(self, threshold):
+        threshold = float(self.quantum_range * threshold)
+        library.MagickSepiaToneImage(self.wand, threshold)
+
+    def colorize(self, color, blend):
+        if not isinstance(color, Color):
+            raise TypeError('Expecting instance of Color for color, not ' +
+                            repr(color))
+
+        blend = Color('rgb(' + str(100 * blend) + '%,'
+          + str(100 * blend) + '%,' + str(100 * blend) + ' )')
+        with color, blend:
+          library.MagickColorizeImage(self.wand, color.resource, blend.resource)
+
+    def set_image_mask(self, mask):
+        libmagick.SetImageMask(library.GetImageFromMagickWand(self.wand),
+          library.GetImageFromMagickWand(mask.wand))
+
+    def extent(self, width, height, x=0, y=0, gravity=None):
+        # Define x & y if gravity is given.
+        if gravity:
+            if width is None or height is None:
+                raise TypeError(
+                    'both width and height must be defined with gravity'
+                )
+            if gravity not in GRAVITY_TYPES:
+                raise ValueError('expected a string from GRAVITY_TYPES, not ' +
+                                 repr(gravity))
+            # Set `y` based on given gravity
+            if gravity in ('north_west', 'north', 'north_east'):
+                y = 0
+            elif gravity in ('west', 'center', 'east'):
+                y = int(self.height / 2) - int(height / 2)
+            elif gravity in ('south_west', 'south', 'south_east'):
+                y = self.height - height
+            # Set `x` based on given gravity
+            if gravity in ('north_west', 'west', 'south_west'):
+                x = 0
+            elif gravity in ('north', 'center', 'south'):
+                x = int(self.width / 2) - int(width / 2)
+            elif gravity in ('north_east', 'east', 'south_east'):
+                x = self.width - width
+        library.MagickExtentImage(self.wand, width, height, x, y)
+
+    def texture(self, texture):
+        wand = library.MagickTextureImage(self.wand, texture.wand)
+        image = BaseImage(wand=wand)
+        return Image(image=image)
 
     @manipulative
     def transform(self, crop='', resize=''):
@@ -2188,7 +2242,7 @@ class BaseImage(Resource):
         return Image(BaseImage(compared_image)), distortion.value
 
     @manipulative
-    def composite(self, image, left, top):
+    def composite(self, image, left=0, top=0, operator='over', compose_args=None, gravity='north_west'):
         """Places the supplied ``image`` over the current image, with the top
         left corner of ``image`` at coordinates ``left``, ``top`` of the
         current image.  The dimensions of the current image are not changed.
@@ -2199,6 +2253,12 @@ class BaseImage(Resource):
         :type left: :class:`numbers.Integral`
         :param top: the y-coordinate where `image` will be placed
         :type top: :class:`numbers.Integral`
+        :param operator: the operator that affects how the composite
+                         is applied to the image.  available values
+                         can be found in the :const:`COMPOSITE_OPERATORS`
+                         list
+        :param compose_args: A string containing extra numerical arguments
+                            for specific compose methods such as blend
 
         .. versionadded:: 0.2.0
 
@@ -2207,9 +2267,38 @@ class BaseImage(Resource):
             raise TypeError('left must be an integer, not ' + repr(left))
         elif not isinstance(top, numbers.Integral):
             raise TypeError('top must be an integer, not ' + repr(left))
-        op = COMPOSITE_OPERATORS.index('over')
+
+        try:
+            op = COMPOSITE_OPERATORS.index(operator)
+        except IndexError:
+            raise IndexError(repr(operator) + ' is an invalid composite '
+                             'operator type; see wand.image.COMPOSITE_'
+                             'OPERATORS dictionary')
+
+        if compose_args is not None:
+          library.MagickSetImageArtifact(self.wand, 'compose:args', str(compose_args))
+
+        # Define x & y if gravity is given.
+        if gravity not in GRAVITY_TYPES:
+            raise ValueError('expected a string from GRAVITY_TYPES, not ' +
+                             repr(gravity))
+        # Set `y` based on given gravity
+        if gravity in ('north_west', 'north', 'north_east'):
+            y = 0
+        elif gravity in ('west', 'center', 'east'):
+            y = int(self.height / 2) - int(image.height / 2)
+        elif gravity in ('south_west', 'south', 'south_east'):
+            y = self.height - image.height
+        # Set `x` based on given gravity
+        if gravity in ('north_west', 'west', 'south_west'):
+            x = 0
+        elif gravity in ('north', 'center', 'south'):
+            x = int(self.width / 2) - int(image.width / 2)
+        elif gravity in ('north_east', 'east', 'south_east'):
+            x = self.width - image.width
+
         library.MagickCompositeImage(self.wand, image.wand, op,
-                                     int(left), int(top))
+                                     int(x + left), int(y + top))
         self.raise_exception()
 
     @manipulative
@@ -2421,6 +2510,17 @@ class BaseImage(Resource):
             raise TypeError('sigma has to be a numbers.Real, not ' +
                             repr(sigma))
         r = library.MagickGaussianBlurImage(self.wand, radius, sigma)
+        if not r:
+            self.raise_exception()
+
+    def blur(self, radius, sigma):
+        if not isinstance(radius, numbers.Real):
+            raise TypeError('radius has to be a numbers.Real, not ' +
+                            repr(radius))
+        elif not isinstance(sigma, numbers.Real):
+            raise TypeError('sigma has to be a numbers.Real, not ' +
+                            repr(sigma))
+        r = library.MagickBlurImage(self.wand, radius, sigma)
         if not r:
             self.raise_exception()
 
