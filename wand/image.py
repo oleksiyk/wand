@@ -28,7 +28,7 @@ from .font import Font
 
 __all__ = ('ALPHA_CHANNEL_TYPES', 'CHANNELS', 'COLORSPACE_TYPES',
            'COMPARE_METRICS', 'COMPOSITE_OPERATORS', 'COMPRESSION_TYPES',
-           'EVALUATE_OPS', 'FILTER_TYPES',
+           'EVALUATE_OPS', 'FILTER_TYPES', 'STORAGE_TYPES',
            'GRAVITY_TYPES', 'IMAGE_TYPES', 'ORIENTATION_TYPES', 'UNIT_TYPES',
            'FUNCTION_TYPES',
            'BaseImage', 'ChannelDepthDict', 'ChannelImageDict',
@@ -534,6 +534,9 @@ IMAGE_LAYER_METHOD = ('undefined', 'coalesce', 'compareany', 'compareclear',
                       'optimizeplus', 'optimizetrans', 'removedups',
                       'removezero', 'composite', 'merge', 'flatten', 'mosaic',
                       'trimbounds')
+
+
+STORAGE_TYPES = ('UndefinedPixel', 'CharPixel', 'DoublePixel', 'FloatPixel', 'IntegerPixel', 'LongPixel', 'QuantumPixel', 'ShortPixel')
 
 
 def manipulative(function):
@@ -2697,6 +2700,37 @@ class BaseImage(Resource):
         return '<{0}: {1}{2}>'.format(
             typename, sig[:7], extra_format.format(self=self)
         )
+
+    def export_pixels(self, map='RGB'):
+        size = self.width * self.height * len(map)
+        buffer = (ctypes.c_uint8 * size)(0)
+
+        result = library.MagickExportImagePixels(self.wand,
+          0,
+          0,
+          self.width,
+          self.height,
+          map,
+          STORAGE_TYPES.index('CharPixel'),
+          buffer)
+
+        if not result:
+          self.raise_exception()
+
+        return buffer
+
+    def import_pixels(self, pixels, map='RGB'):
+        result = library.MagickImportImagePixels(self.wand,
+          0,
+          0,
+          self.width,
+          self.height,
+          map,
+          STORAGE_TYPES.index('CharPixel'),
+          pixels)
+
+        if not result:
+          self.raise_exception()
 
 
 class Image(BaseImage):

@@ -1434,6 +1434,28 @@ try:
                                             ctypes.c_bool,
                                             ctypes.c_bool]
 
+    library.MagickExportImagePixels.argtypes = [
+        ctypes.c_void_p,  # wand
+        ctypes.c_size_t,  # x
+        ctypes.c_size_t,  # y
+        ctypes.c_size_t,  # columns
+        ctypes.c_size_t,  # rows
+        ctypes.c_char_p,  # map,
+        ctypes.c_int,     # storage type
+        ctypes.c_void_p   # pixels
+    ]
+
+    library.MagickImportImagePixels.argtypes = [
+        ctypes.c_void_p,  # wand
+        ctypes.c_size_t,  # x
+        ctypes.c_size_t,  # y
+        ctypes.c_size_t,  # columns
+        ctypes.c_size_t,  # rows
+        ctypes.c_char_p,  # map,
+        ctypes.c_int,     # storage type
+        ctypes.c_void_p   # pixels
+    ]
+
 except AttributeError:
     raise ImportError('MagickWand shared library not found or incompatible\n'
                       'Original exception was raised in:\n' +
