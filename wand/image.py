@@ -425,7 +425,9 @@ ORIENTATION_TYPES = ('undefined', 'top_left', 'top_right', 'bottom_right',
 #:
 #: .. versionchanged:: 0.3.9
 #:    Added ``'pdf:use-cropbox'`` option.
-OPTIONS = frozenset(['fill', 'jpeg:sampling-factor', 'pdf:use-cropbox', 'jpeg:size', 'webp:lossless', 'webp:emulate-jpeg-size'])
+OPTIONS = frozenset(['fill', 'jpeg:sampling-factor', 'pdf:use-cropbox', 'jpeg:size',
+  'webp:lossless', 'webp:emulate-jpeg-size', 'webp:image-hint', 'webp:method', 'webp:target-size', 'webp:target-psnr',
+  'webp:pass', 'webp:thread-level', 'webp:preprocessing'])
 
 #: (:class:`tuple`) The list of :attr:`Image.compression` types.
 #:
