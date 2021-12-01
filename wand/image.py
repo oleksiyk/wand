@@ -2281,7 +2281,7 @@ class BaseImage(Resource):
                              'OPERATORS dictionary')
 
         if compose_args is not None:
-          library.MagickSetImageArtifact(self.wand, 'compose:args', str(compose_args))
+          library.MagickSetImageArtifact(self.wand, binary('compose:args'), binary(str(compose_args)))
 
         # Define x & y if gravity is given.
         if gravity not in GRAVITY_TYPES:
@@ -2712,9 +2712,9 @@ class BaseImage(Resource):
           0,
           self.width,
           self.height,
-          map,
+          binary(map),
           STORAGE_TYPES.index('CharPixel'),
-          buffer)
+          ctypes.byref(buffer))
 
         if not result:
           self.raise_exception()
@@ -2727,7 +2727,7 @@ class BaseImage(Resource):
           0,
           self.width,
           self.height,
-          map,
+          binary(map),
           STORAGE_TYPES.index('CharPixel'),
           pixels)
 
