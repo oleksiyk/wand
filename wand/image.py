@@ -1374,7 +1374,7 @@ class BaseImage(Resource):
             raise TypeError('expected sequence of doubles, not ' +
                             repr(arguments))
         for name in options:
-          library.MagickSetImageArtifact(self.wand, binary(name), options[name])
+          library.MagickSetImageArtifact(self.wand, binary(name), binary(options[name]))
         argc = len(arguments)
         argv = (ctypes.c_double * argc)(*arguments)
         library.MagickDistortImage(self.wand,
