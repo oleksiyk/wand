@@ -1456,6 +1456,12 @@ try:
         ctypes.c_void_p   # pixels
     ]
 
+    library.MagickClipImagePath.argtypes = [
+        ctypes.c_void_p,  # wand
+        ctypes.c_char_p,  # crop path name,
+        ctypes.c_bool    # inside
+    ]
+
 except AttributeError:
     raise ImportError('MagickWand shared library not found or incompatible\n'
                       'Original exception was raised in:\n' +

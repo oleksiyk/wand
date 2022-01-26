@@ -2734,6 +2734,14 @@ class BaseImage(Resource):
         if not result:
           self.raise_exception()
 
+    def clip_image_path(self, path, inside):
+        result = library.MagickClipImagePath(self.wand,
+          binary(path),
+          inside)
+
+        if not result:
+          self.raise_exception()
+
 
 class Image(BaseImage):
     """An image object.
