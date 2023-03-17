@@ -11,6 +11,7 @@ error happened)::
 
 """
 import collections
+collections_abc = getattr(collections, 'abc', collections)
 import ctypes
 import functools
 import numbers
@@ -572,7 +573,7 @@ class BaseImage(Resource):
     #:    Added ``'pdf:use-cropbox'`` option.
     options = None
 
-    #: (:class:`collections.Sequence`) The list of
+    #: (:class:`collections_abc.Sequence`) The list of
     #: :class:`~wand.sequence.SingleImage`\ s that the image contains.
     #:
     #: .. versionadded:: 0.3.0
@@ -641,7 +642,7 @@ class BaseImage(Resource):
 
     def __getitem__(self, idx):
         if (not isinstance(idx, string_type) and
-                isinstance(idx, collections.Iterable)):
+                isinstance(idx, collections_abc.Iterable)):
             idx = tuple(idx)
             d = len(idx)
             if not (1 <= d <= 2):
@@ -844,7 +845,7 @@ class BaseImage(Resource):
     @page.setter
     @manipulative
     def page(self, newpage):
-        if isinstance(newpage, collections.Sequence):
+        if isinstance(newpage, collections_abc.Sequence):
             w, h, x, y = newpage
         else:
             raise TypeError("page layout must be 4-tuple")
@@ -1049,7 +1050,7 @@ class BaseImage(Resource):
     @resolution.setter
     @manipulative
     def resolution(self, geometry):
-        if isinstance(geometry, collections.Sequence):
+        if isinstance(geometry, collections_abc.Sequence):
             x, y = geometry
         elif isinstance(geometry, numbers.Integral):
             x, y = geometry, geometry
@@ -1370,7 +1371,7 @@ class BaseImage(Resource):
         if method not in DISTORTION_METHODS:
             raise ValueError('expected string from DISTORTION_METHODS, not ' +
                              repr(method))
-        if not isinstance(arguments, collections.Sequence):
+        if not isinstance(arguments, collections_abc.Sequence):
             raise TypeError('expected sequence of doubles, not ' +
                             repr(arguments))
         for name in options:
@@ -2096,7 +2097,7 @@ class BaseImage(Resource):
         if function not in FUNCTION_TYPES:
             raise ValueError('expected string from FUNCTION_TYPES, not ' +
                              repr(function))
-        if not isinstance(arguments, collections.Sequence):
+        if not isinstance(arguments, collections_abc.Sequence):
             raise TypeError('expecting sequence of arguments, not ' +
                             repr(arguments))
         argc = len(arguments)
@@ -2771,7 +2772,7 @@ class Image(BaseImage):
     :type background: :class:`wand.color.Color`
     :param resolution: set a resolution value (dpi),
                        useful for vectorial formats (like pdf)
-    :type resolution: :class:`collections.Sequence`,
+    :type resolution: :class:`collections_abc.Sequence`,
                       :Class:`numbers.Integral`
 
     .. versionadded:: 0.1.5
@@ -2949,7 +2950,7 @@ class Image(BaseImage):
         r = None
         # Resolution must be set after image reading.
         if resolution is not None:
-            if (isinstance(resolution, collections.Sequence) and
+            if (isinstance(resolution, collections_abc.Sequence) and
                     len(resolution) == 2):
                 library.MagickSetResolution(self.wand, *resolution)
             elif isinstance(resolution, numbers.Integral):
@@ -2970,7 +2971,7 @@ class Image(BaseImage):
                 blob = file.read()
                 file = None
         if blob is not None:
-            if not isinstance(blob, collections.Iterable):
+            if not isinstance(blob, collections_abc.Iterable):
                 raise TypeError('blob must be iterable, not ' +
                                 repr(blob))
             if not isinstance(blob, binary_type):
@@ -3541,7 +3542,7 @@ class Image(BaseImage):
         )
 
 
-class Iterator(Resource, collections.Iterator):
+class Iterator(Resource, collections_abc.Iterator):
     """Row iterator for :class:`Image`. It shouldn't be instantiated
     directly; instead, it can be acquired through :class:`Image` instance::
 
@@ -3671,7 +3672,7 @@ class ImageProperty(object):
         )
 
 
-class OptionDict(ImageProperty, collections.MutableMapping):
+class OptionDict(ImageProperty, collections_abc.MutableMapping):
     """Mutable mapping of the image internal options.  See available
     options in :const:`OPTIONS` constant.
 
@@ -3708,7 +3709,7 @@ class OptionDict(ImageProperty, collections.MutableMapping):
         self[key] = ''
 
 
-class Metadata(ImageProperty, collections.Mapping):
+class Metadata(ImageProperty, collections_abc.Mapping):
     """Class that implements dict-like read-only access to image metadata
     like EXIF or IPTC headers.
 
@@ -3762,7 +3763,7 @@ class Metadata(ImageProperty, collections.Mapping):
         return num.value
 
 
-class ChannelImageDict(ImageProperty, collections.Mapping):
+class ChannelImageDict(ImageProperty, collections_abc.Mapping):
     """The mapping table of separated images of the particular channel
     from the image.
 
@@ -3797,7 +3798,7 @@ class ChannelImageDict(ImageProperty, collections.Mapping):
         return img
 
 
-class ChannelDepthDict(ImageProperty, collections.Mapping):
+class ChannelDepthDict(ImageProperty, collections_abc.Mapping):
     """The mapping table of channels to their depth.
 
     :param image: an image instance
@@ -3824,7 +3825,7 @@ class ChannelDepthDict(ImageProperty, collections.Mapping):
         return int(depth)
 
 
-class HistogramDict(collections.Mapping):
+class HistogramDict(collections_abc.Mapping):
     """Specialized mapping object to represent color histogram.
     Keys are colors, and values are the number of pixels.
 
