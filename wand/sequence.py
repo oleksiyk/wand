@@ -5,6 +5,7 @@
 
 """
 import collections
+collections_abc = getattr(collections, 'abc', collections)
 import contextlib
 import ctypes
 import numbers
@@ -17,7 +18,7 @@ from .version import MAGICK_VERSION_INFO
 __all__ = 'Sequence', 'SingleImage'
 
 
-class Sequence(ImageProperty, collections.MutableSequence):
+class Sequence(ImageProperty, collections_abc.MutableSequence):
     """The list-like object that contains every :class:`SingleImage`
     in the :class:`~wand.image.Image` container.  It implements
     :class:`collections.Sequence` prototocol.

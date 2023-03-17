@@ -7,6 +7,7 @@ The module provides some vector drawing functions.
 
 """
 import collections
+collections_abc = getattr(collections, 'abc', collections)
 import ctypes
 import numbers
 
@@ -329,7 +330,7 @@ class Drawing(Resource):
 
     @font_resolution.setter
     def font_resolution(self, resolution):
-        if not isinstance(resolution, collections.Sequence):
+        if not isinstance(resolution, collections_abc.Sequence):
             raise TypeError('expected sequence, not ' + repr(resolution))
         if len(resolution) != 2:
             raise ValueError('expected sequence of 2 floats')
@@ -936,7 +937,7 @@ class Drawing(Resource):
         .. versionadded:: 0.4.0
 
         """
-        if not isinstance(matrix, collections.Sequence) or len(matrix) != 6:
+        if not isinstance(matrix, collections_abc.Sequence) or len(matrix) != 6:
             raise ValueError('matrix must be a list of size Real numbers')
         for idx, val in enumerate(matrix):
             if not isinstance(val, numbers.Real):
