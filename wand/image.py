@@ -1693,7 +1693,7 @@ class BaseImage(Resource):
                             repr(color))
 
         blend = Color('rgb(' + str(100 * blend) + '%,'
-          + str(100 * blend) + '%,' + str(100 * blend) + ' )')
+          + str(100 * blend) + '%,' + str(100 * blend) + '%)')
         with color, blend:
           library.MagickColorizeImage(self.wand, color.resource, blend.resource)
 
