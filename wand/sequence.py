@@ -128,6 +128,8 @@ class Sequence(ImageProperty, collections_abc.MutableSequence):
         exc = libmagick.AcquireExceptionInfo()
         single_image = libmagick.CloneImages(image, binary(str(index)), exc)
         libmagick.DestroyExceptionInfo(exc)
+        if single_image is None:
+            raise TypeError('No image available')
         single_wand = library.NewMagickWandFromImage(single_image)
         single_image = libmagick.DestroyImage(single_image)
         library.MagickSetIteratorIndex(wand, tmp_idx)
