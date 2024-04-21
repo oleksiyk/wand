@@ -3113,7 +3113,7 @@ class Image(BaseImage):
 
     @property
     def animation(self):
-        return (self.mimetype in ('image/gif', 'image/x-gif') and
+        return (self.mimetype in ('image/gif', 'image/x-gif', 'image/gif') and
                 len(self.sequence) > 1)
 
     @property
