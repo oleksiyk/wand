@@ -1462,6 +1462,26 @@ try:
         ctypes.c_bool    # inside
     ]
 
+    library.MagickGetImageProfile.argtypes = [
+        ctypes.c_void_p, ctypes.c_char_p, ctypes.POINTER(ctypes.c_size_t)
+    ]
+    library.MagickGetImageProfile.restype = ctypes.POINTER(ctypes.c_ubyte)
+
+    library.MagickGetImageProfiles.argtypes = [
+        ctypes.c_void_p, ctypes.c_char_p, ctypes.POINTER(ctypes.c_size_t)
+    ]
+    library.MagickGetImageProfiles.restype = ctypes.POINTER(ctypes.c_void_p)
+
+    library.MagickSetImageProfile.argtypes = [
+        ctypes.c_void_p, ctypes.c_char_p, ctypes.c_void_p, ctypes.c_size_t
+    ]
+    library.MagickSetImageProfile.restype = ctypes.c_bool
+
+    library.MagickRemoveImageProfile.argtypes = [
+        ctypes.c_void_p, ctypes.c_char_p, ctypes.POINTER(ctypes.c_size_t)
+    ]
+    library.MagickRemoveImageProfile.restype = ctypes.POINTER(ctypes.c_ubyte)
+
 except AttributeError:
     raise ImportError('MagickWand shared library not found or incompatible\n'
                       'Original exception was raised in:\n' +

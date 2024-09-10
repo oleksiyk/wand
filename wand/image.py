@@ -20,7 +20,7 @@ import weakref
 from . import compat
 from .api import MagickPixelPacket, libc, libmagick, library
 from .color import Color
-from .compat import (binary, binary_type, encode_filename, file_types,
+from .compat import (abc, binary, binary_type, encode_filename, file_types,
                      string_type, text, xrange)
 from .exceptions import MissingDelegateError, WandException
 from .resource import DestroyedResourceError, Resource
@@ -34,7 +34,7 @@ __all__ = ('ALPHA_CHANNEL_TYPES', 'CHANNELS', 'COLORSPACE_TYPES',
            'FUNCTION_TYPES',
            'BaseImage', 'ChannelDepthDict', 'ChannelImageDict',
            'ClosedImageError', 'HistogramDict', 'Image', 'ImageProperty',
-           'Iterator', 'Metadata', 'OptionDict', 'manipulative')
+           'Iterator', 'Metadata', 'OptionDict', 'manipulative', 'ProfileDict')
 
 
 #: (:class:`tuple`) The list of filter types.
@@ -2842,6 +2842,11 @@ class Image(BaseImage):
     #: .. versionadded:: 0.3.0
     channel_depths = None
 
+    #: (:class:`ProfileDict`) The mapping of image profiles.
+    #:
+    #: .. versionadded:: 0.5.1
+    profiles = None
+
     def __init__(self, image=None, blob=None, file=None, filename=None,
                  format=None, width=None, height=None, depth=None,
                  background=None, resolution=None):
@@ -2917,6 +2922,7 @@ class Image(BaseImage):
             self.metadata = Metadata(self)
             from .sequence import Sequence
             self.sequence = Sequence(self)
+            self.profiles = ProfileDict(self)
         self.raise_exception()
 
     def destroy(self):
@@ -3761,6 +3767,81 @@ class Metadata(ImageProperty, collections_abc.Mapping):
         props_p = library.MagickGetImageProperties(image.wand, b'', num)
         library.MagickRelinquishMemory(props_p)
         return num.value
+
+class ProfileDict(ImageProperty, abc.MutableMapping):
+    """The mapping table of embedded image profiles.
+
+    Use this to get, set, and delete whole profile payloads on an image. Each
+    payload is a raw binary string.
+
+    Example profiles:
+    8bim
+    exif
+    icc
+    iptc
+    xmp
+
+    For example::
+
+        with Image(filename='photo.jpg') as img:
+            # Extract EXIF
+            with open('exif.bin', 'wb') as payload:
+                payload.write(img.profiles['exif'])
+            # Import ICC
+            with open('color_profile.icc', 'rb') as payload:
+                img.profiles['icc'] = payload.read()
+            # Remove XMP
+            del imp.profiles['xmp']
+
+    .. seealso::
+
+        `Embedded Image Profiles`__ for a list of supported profiles.
+
+        __ https://imagemagick.org/script/formats.php#embedded
+
+    .. versionadded:: 0.5.1
+    """
+    def __init__(self, image):
+        if not isinstance(image, Image):
+            raise TypeError('expected a wand.image.Image instance, '
+                            'not ' + repr(image))
+        super(ProfileDict, self).__init__(image)
+
+    def __delitem__(self, k):
+        num = ctypes.c_size_t(0)
+        profile_p = library.MagickRemoveImageProfile(self.image.wand,
+                                                     binary(k), num)
+        profile_p = library.MagickRelinquishMemory(profile_p)
+
+    def __getitem__(self, k):
+        num = ctypes.c_size_t(0)
+        return_profile = None
+        profile_p = library.MagickGetImageProfile(self.image.wand,
+                                                  binary(k), num)
+        if num.value > 0:
+            return_profile = ctypes.string_at(profile_p, num.value)
+            profile_p = library.MagickRelinquishMemory(profile_p)
+        return return_profile
+
+    def __iter__(self):
+        num = ctypes.c_size_t(0)
+        prop = library.MagickGetImageProfiles(self.image.wand, b'', num)
+        profiles = [text(ctypes.string_at(prop[i])) for i in xrange(num.value)]
+        prop = library.MagickRelinquishMemory(prop)
+        return iter(profiles)
+
+    def __len__(self):
+        num = ctypes.c_size_t(0)
+        profiles_p = library.MagickGetImageProfiles(self.image.wand, b'', num)
+        profiles_p = library.MagickRelinquishMemory(profiles_p)
+        return num.value
+
+    def __setitem__(self, k, v):
+        if not isinstance(v, binary_type):
+            raise TypeError('value must be a binary string, not ' + repr(v))
+        r = library.MagickSetImageProfile(self.image.wand, binary(k), v, len(v))
+        if not r:
+            self.image.raise_exception()
 
 
 class ChannelImageDict(ImageProperty, collections_abc.Mapping):
