@@ -1179,13 +1179,39 @@ class BaseImage(Resource):
             self.raise_exception()
 
     @property
-    def compression_quality(self):
+    def image_compression_quality(self):
         """(:class:`numbers.Integral`) Compression quality of this image.
 
         .. versionadded:: 0.2.0
 
         """
         return library.MagickGetImageCompressionQuality(self.wand)
+
+    @image_compression_quality.setter
+    @manipulative
+    def image_compression_quality(self, quality):
+        """Set compression quality for the image.
+
+        :param quality: new compression quality setting
+        :type quality: :class:`numbers.Integral`
+
+        """
+        if not isinstance(quality, numbers.Integral):
+            raise TypeError('compression quality must be a natural '
+                            'number, not ' + repr(quality))
+        r = library.MagickSetImageCompressionQuality(self.wand, quality)
+        if not r:
+            raise ValueError('Unable to set compression quality to ' +
+                             repr(quality))
+
+    @property
+    def compression_quality(self):
+        """(:class:`numbers.Integral`) Compression quality of this image.
+
+        .. versionadded:: 0.2.0
+
+        """
+        return library.MagickGetCompressionQuality(self.wand)
 
     @compression_quality.setter
     @manipulative
@@ -1199,7 +1225,7 @@ class BaseImage(Resource):
         if not isinstance(quality, numbers.Integral):
             raise TypeError('compression quality must be a natural '
                             'number, not ' + repr(quality))
-        r = library.MagickSetImageCompressionQuality(self.wand, quality)
+        r = library.MagickSetCompressionQuality(self.wand, quality)
         if not r:
             raise ValueError('Unable to set compression quality to ' +
                              repr(quality))
