@@ -657,6 +657,12 @@ try:
     library.MagickSetImageCompressionQuality.argtypes = [ctypes.c_void_p,
                                                          ctypes.c_ssize_t]
 
+    library.MagickGetCompressionQuality.argtypes = [ctypes.c_void_p]
+    library.MagickGetCompressionQuality.restype = ctypes.c_ssize_t
+
+    library.MagickSetCompressionQuality.argtypes = [ctypes.c_void_p,
+                                                         ctypes.c_ssize_t]
+
     library.MagickStripImage.argtypes = [ctypes.c_void_p]
 
     library.MagickTrimImage.argtypes = [ctypes.c_void_p,
